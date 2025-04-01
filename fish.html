@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Fish Pond Ecosystem</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: radial-gradient(circle, #87CEEB, #4682B4);
+            font-family: Arial, sans-serif;
+            color: #333;
+        }
+        .pond {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+        .fish {
+            position: absolute;
+            width: 50px;
+            transition: transform 2s ease-in-out;
+            cursor: pointer;
+            z-index: 10;
+        }
+        .fish img {
+            width: 100%;
+            height: auto;
+            transition: transform 0.3s;
+        }
+        .ripple {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            animation: rippleEffect 1s ease-out;
+            z-index: 5;
+        }
+        .food {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #f4a742;
+            border-radius: 50%;
+            animation: sinkFood 5s linear forwards;
+            z-index: 8;
+        }
+        .lily {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(#7eb356, #4a6c32);
+            border-radius: 50%;
+            z-index: 7;
+        }
+        .controls {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            z-index: 20;
+            transition: background 0.5s;
+        }
+        .stats {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            z-index: 20;
+            transition: background 0.5s;
+        }
+        button {
+            background: #4682B4;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #5793c5;
+            transform: translateY(-2px);
+            box-shadow: 0 3px 5px rgba(0,0,0,0.2);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        h3 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        .help-text {
+            font-size: 0.8rem;
+            color: #555;
+            margin-top: 10px;
+        }
+        @keyframes rippleEffect {
+            0% { transform: scale(1); opacity: 0.8; }
+            100% { transform: scale(5); opacity: 0; }
+        }
+        @keyframes sinkFood {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(50px) rotate(45deg); opacity: 0.3; }
+        }
+        /* Bubbles animation */
+        .bubble {
+            position: absolute;
+            bottom: -20px;
+            background-color: rgba(255, 255, 255, 0.4);
+            border-radius: 50%;
+            animation: bubbleRise linear infinite;
+            z-index: 3;
+        }
+        @keyframes bubbleRise {
+            0% { transform: translateY(0) scale(1); opacity: 0.5; }
+            100% { transform: translateY(-100vh) scale(1.5); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="pond" id="pond"></div>
+    
+    <div class="controls" id="controls">
+        <h3>Pond Controls</h3>
+        <button id="addFish">Add Fish</button>
+        <button id="addFood">Add Food</button>
+        <button id="addLily">Add Lily Pad</button>
+        <button id="toggleNight">Toggle Day/Night</button>
+        <p class="help-text">Click on the pond to add food. Click on fish to make them grow!</p>
+    </div>
+    
+    <div class="stats" id="stats">
+        <h3>Pond Statistics</h3>
+        <p>Fish: <span id="fishCount">0</span></p>
+        <p>Food Items: <span id="foodCount">0</span></p>
+        <p>Lily Pads: <span id="lilyCount">0</span></p>
+    </div>
+    
+    <script>
+        const pond = document.getElementById("pond");
+        const controls = document.getElementById("controls");
+        const stats = document.getElementById("stats");
+        let isNightMode = false;
+        let fishCount = 0;
+        let foodCount = 0;
+        let lilyCount = 0;
+        
+        // Fish images - using the provided fish image locations
+        const fishImages = [
+            "C:/Users/rajna/Downloads/fis.png",
+            "C:/Users/rajna/Downloads/fishh.png",
+            "C:/Users/rajna/Downloads/fishey.png",
+            "C:/Users/rajna/Downloads/fisher.png",
+            "C:/Users/rajna/Downloads/fishem.png"
+        ];
+        
+        // Create some initial bubbles
+        createBubbles();
+        
+        function createBubbles() {
+            // Create random bubbles
+            for (let i = 0; i < 15; i++) {
+                createBubble();
+            }
+            
+            // Add new bubbles periodically
+            setInterval(createBubble, 2000);
+        }
+        
+        function createBubble() {
+            const bubble = document.createElement("div");
+            bubble.classList.add("bubble");
+            
+            // Random size (5px to 15px)
+            const size = Math.floor(Math.random() * 10) + 5;
+            bubble.style.width = `${size}px`;
+            bubble.style.height = `${size}px`;
+            
+            // Random horizontal position
+            bubble.style.left = `${Math.random() * window.innerWidth}px`;
+            
+            // Random animation duration (3s to 8s)
+            const duration = Math.floor(Math.random() * 5) + 3;
+            bubble.style.animationDuration = `${duration}s`;
+            
+            pond.appendChild(bubble);
+            
+            // Remove bubble after animation completes
+            setTimeout(() => {
+                if (bubble.parentNode === pond) {
+                    bubble.remove();
+                }
+            }, duration * 1000);
+        }
+        
+        function createFish(x, y) {
+            const fish = document.createElement("div");
+            fish.classList.add("fish");
+            
+            // Pick a random fish image from the array
+            const randomImage = fishImages[Math.floor(Math.random() * fishImages.length)];
+            fish.innerHTML = `<img src="${randomImage}" alt="Fish">`;
+            
+            // Position the fish - either at random or at specified coordinates
+            fish.style.top = (y !== undefined) ? `${y}px` : `${Math.random() * window.innerHeight}px`;
+            fish.style.left = (x !== undefined) ? `${x}px` : `${Math.random() * window.innerWidth}px`;
+            
+            // Random size variation (40px to 60px)
+            const randomSize = Math.floor(Math.random() * 20) + 40;
+            fish.style.width = `${randomSize}px`;
+            
+            // Make the fish clickable - it will grow when clicked
+            fish.addEventListener("click", (e) => {
+                e.stopPropagation();
+                const currentSize = parseInt(fish.style.width) || 50;
+                fish.style.width = `${currentSize + 5}px`;
+                createRipple(parseInt(fish.style.left) + currentSize/2, parseInt(fish.style.top) + currentSize/2);
+            });
+            
+            pond.appendChild(fish);
+            moveFish(fish);
+            
+            // Update fish counter
+            fishCount++;
+            document.getElementById("fishCount").textContent = fishCount;
+            
+            return fish;
+        }
+        
+        function moveFish(fish) {
+            const moveInterval = setInterval(() => {
+                // Find food if available
+                const foodItems = document.querySelectorAll(".food");
+                if (foodItems.length > 0) {
+                    // Move to the nearest food
+                    const nearestFood = findNearestFood(fish);
+                    if (nearestFood) {
+                        const foodX = parseInt(nearestFood.style.left);
+                        const foodY = parseInt(nearestFood.style.top);
+                        fish.style.transform = `translate(${foodX - parseInt(fish.style.left)}px, ${foodY - parseInt(fish.style.top)}px)`;
+                        
+                        // Check if fish reached food (simple collision detection)
+                        setTimeout(() => {
+                            const fishRect = fish.getBoundingClientRect();
+                            const foodRect = nearestFood.getBoundingClientRect();
+                            if (isColliding(fishRect, foodRect)) {
+                                nearestFood.remove();
+                                // Make fish grow slightly when eating
+                                const currentSize = parseInt(fish.style.width) || 50;
+                                fish.style.width = `${currentSize + 2}px`;
+                                
+                                // Update food counter
+                                foodCount--;
+                                document.getElementById("foodCount").textContent = foodCount;
+                                
+                                // Create small ripple effect when eating
+                                createRipple(foodX, foodY);
+                            }
+                        }, 2000);
+                        
+                        // Flip fish direction based on movement
+                        const fishX = parseInt(fish.style.left);
+                        fish.querySelector("img").style.transform = foodX > fishX ? "scaleX(1)" : "scaleX(-1)";
+                        return;
+                    }
+                }
+                
+                // Random movement if no food
+                const newX = Math.random() * window.innerWidth;
+                const newY = Math.random() * window.innerHeight;
+                fish.style.transform = `translate(${newX - parseInt(fish.style.left)}px, ${newY - parseInt(fish.style.top)}px)`;
+                
+                // Flip fish direction based on movement
+                const fishX = parseInt(fish.style.left);
+                fish.querySelector("img").style.transform = newX > fishX ? "scaleX(1)" : "scaleX(-1)";
+            }, 3000 + Math.random() * 2000); // Random interval for more natural movement
+            
+            // Store the interval ID on the fish element so we can clear it if needed
+            fish.moveInterval = moveInterval;
+        }
+        
+        function findNearestFood(fish) {
+            const foodItems = document.querySelectorAll(".food");
+            if (foodItems.length === 0) return null;
+            
+            const fishX = parseInt(fish.style.left);
+            const fishY = parseInt(fish.style.top);
+            
+            let nearestFood = null;
+            let shortestDistance = Infinity;
+            
+            foodItems.forEach(food => {
+                const foodX = parseInt(food.style.left);
+                const foodY = parseInt(food.style.top);
+                const distance = Math.sqrt(Math.pow(foodX - fishX, 2) + Math.pow(foodY - fishY, 2));
+                
+                if (distance < shortestDistance) {
+                    shortestDistance = distance;
+                    nearestFood = food;
+                }
+            });
+            
+            return nearestFood;
+        }
+        
+        function isColliding(rect1, rect2) {
+            return !(
+                rect1.right < rect2.left || 
+                rect1.left > rect2.right || 
+                rect1.bottom < rect2.top || 
+                rect1.top > rect2.bottom
+            );
+        }
+        
+        function createRipple(x, y) {
+            const ripple = document.createElement("div");
+            ripple.classList.add("ripple");
+            ripple.style.left = `${x - 10}px`;
+            ripple.style.top = `${y - 10}px`;
+            pond.appendChild(ripple);
+            setTimeout(() => ripple.remove(), 1000);
+        }
+        
+        function addFood(x, y) {
+            const food = document.createElement("div");
+            food.classList.add("food");
+            food.style.left = `${x - 5}px`;
+            food.style.top = `${y - 5}px`;
+            pond.appendChild(food);
+            
+            // Update food counter
+            foodCount++;
+            document.getElementById("foodCount").textContent = foodCount;
+            
+            // Remove food after a while if not eaten
+            setTimeout(() => {
+                if (food.parentNode === pond) {
+                    food.remove();
+                    foodCount--;
+                    document.getElementById("foodCount").textContent = foodCount;
+                }
+            }, 8000);
+        }
+        
+        function addLilyPad(x, y) {
+            const lily = document.createElement("div");
+            lily.classList.add("lily");
+            lily.style.left = `${x - 40}px`;
+            lily.style.top = `${y - 40}px`;
+            pond.appendChild(lily);
+            
+            // Update lily counter
+            lilyCount++;
+            document.getElementById("lilyCount").textContent = lilyCount;
+            
+            // Make lily pads clickable - they'll create a fish when clicked
+            lily.addEventListener("click", (e) => {
+                e.stopPropagation();
+                createRipple(x, y);
+                createFish(x, y);
+            });
+        }
+        
+        // Handle pond clicks
+        pond.addEventListener("click", (e) => {
+            createRipple(e.clientX, e.clientY);
+            addFood(e.clientX, e.clientY);
+        });
+        
+        // Button event listeners
+        document.getElementById("addFish").addEventListener("click", () => {
+            createFish();
+        });
+        
+        document.getElementById("addFood").addEventListener("click", () => {
+            // Add food at random positions
+            for (let i = 0; i < 5; i++) {
+                const x = Math.random() * window.innerWidth;
+                const y = Math.random() * window.innerHeight;
+                addFood(x, y);
+            }
+        });
+        
+        document.getElementById("addLily").addEventListener("click", () => {
+            const x = Math.random() * (window.innerWidth - 100) + 50;
+            const y = Math.random() * (window.innerHeight - 100) + 50;
+            addLilyPad(x, y);
+        });
+        
+        document.getElementById("toggleNight").addEventListener("click", () => {
+            isNightMode = !isNightMode;
+            if (isNightMode) {
+                document.body.style.background = "radial-gradient(circle, #001e3c, #000510)";
+                controls.style.background = "rgba(50, 50, 70, 0.8)";
+                stats.style.background = "rgba(50, 50, 70, 0.8)";
+                controls.style.color = "#ddd";
+                stats.style.color = "#ddd";
+                document.querySelectorAll("h3").forEach(h => h.style.color = "#89CFF0");
+                document.querySelector(".help-text").style.color = "#aaa";
+            } else {
+                document.body.style.background = "radial-gradient(circle, #87CEEB, #4682B4)";
+                controls.style.background = "rgba(255, 255, 255, 0.8)";
+                stats.style.background = "rgba(255, 255, 255, 0.8)";
+                controls.style.color = "#333";
+                stats.style.color = "#333";
+                document.querySelectorAll("h3").forEach(h => h.style.color = "#2c3e50");
+                document.querySelector(".help-text").style.color = "#555";
+            }
+        });
+        
+        // Add some initial pond elements
+        createFish();
+        createFish();
+        
+        // Add a lily pad
+        const initialLilyX = Math.random() * (window.innerWidth - 100) + 50;
+        const initialLilyY = Math.random() * (window.innerHeight - 100) + 50;
+        addLilyPad(initialLilyX, initialLilyY);
+    </script>
+</body>
+</html>
