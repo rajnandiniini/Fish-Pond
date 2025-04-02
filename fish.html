@@ -113,7 +113,7 @@
             0% { transform: translateY(0) rotate(0deg); opacity: 1; }
             100% { transform: translateY(50px) rotate(45deg); opacity: 0.3; }
         }
-        /* Bubbles animation */
+       
         .bubble {
             position: absolute;
             bottom: -20px;
@@ -156,26 +156,26 @@
         let foodCount = 0;
         let lilyCount = 0;
         
-        // Fish images - using the provided fish image locations
+      
 const fishImages = [
-    "images/fis.png",        // Corrected to match the file nam      // Corrected to match the file name
-    "images/fishem.png",     // Corrected to match the file name
-    "images/fisher.png",     // Corrected to match the file name
-    "images/fishey.png",     // Corrected to match the file name
-    "images/fishh.png"       // Corrected to match the file name
+    "images/fis.png",        
+    "images/fishem.png",    
+    "images/fisher.png",    
+    "images/fishey.png",     
+    "images/fishh.png"      
 ];
 
 
-        // Create some initial bubbles
+   
         createBubbles();
         
         function createBubbles() {
-            // Create random bubbles
+          
             for (let i = 0; i < 15; i++) {
                 createBubble();
             }
             
-            // Add new bubbles periodically
+      
             setInterval(createBubble, 2000);
         }
         
@@ -183,21 +183,21 @@ const fishImages = [
             const bubble = document.createElement("div");
             bubble.classList.add("bubble");
             
-            // Random size (5px to 15px)
+      
             const size = Math.floor(Math.random() * 10) + 5;
             bubble.style.width = `${size}px`;
             bubble.style.height = `${size}px`;
             
-            // Random horizontal position
+
             bubble.style.left = `${Math.random() * window.innerWidth}px`;
             
-            // Random animation duration (3s to 8s)
+  
             const duration = Math.floor(Math.random() * 5) + 3;
             bubble.style.animationDuration = `${duration}s`;
             
             pond.appendChild(bubble);
             
-            // Remove bubble after animation completes
+
             setTimeout(() => {
                 if (bubble.parentNode === pond) {
                     bubble.remove();
@@ -209,19 +209,18 @@ const fishImages = [
             const fish = document.createElement("div");
             fish.classList.add("fish");
             
-            // Pick a random fish image from the array
+
             const randomImage = fishImages[Math.floor(Math.random() * fishImages.length)];
             fish.innerHTML = `<img src="${randomImage}" alt="Fish">`;
             
-            // Position the fish - either at random or at specified coordinates
+
             fish.style.top = (y !== undefined) ? `${y}px` : `${Math.random() * window.innerHeight}px`;
             fish.style.left = (x !== undefined) ? `${x}px` : `${Math.random() * window.innerWidth}px`;
             
-            // Random size variation (40px to 60px)
+
             const randomSize = Math.floor(Math.random() * 20) + 40;
             fish.style.width = `${randomSize}px`;
-            
-            // Make the fish clickable - it will grow when clicked
+    
             fish.addEventListener("click", (e) => {
                 e.stopPropagation();
                 const currentSize = parseInt(fish.style.width) || 50;
@@ -231,8 +230,7 @@ const fishImages = [
             
             pond.appendChild(fish);
             moveFish(fish);
-            
-            // Update fish counter
+         
             fishCount++;
             document.getElementById("fishCount").textContent = fishCount;
             
@@ -241,53 +239,53 @@ const fishImages = [
         
         function moveFish(fish) {
             const moveInterval = setInterval(() => {
-                // Find food if available
+  
                 const foodItems = document.querySelectorAll(".food");
                 if (foodItems.length > 0) {
-                    // Move to the nearest food
+
                     const nearestFood = findNearestFood(fish);
                     if (nearestFood) {
                         const foodX = parseInt(nearestFood.style.left);
                         const foodY = parseInt(nearestFood.style.top);
                         fish.style.transform = `translate(${foodX - parseInt(fish.style.left)}px, ${foodY - parseInt(fish.style.top)}px)`;
                         
-                        // Check if fish reached food (simple collision detection)
+               
                         setTimeout(() => {
                             const fishRect = fish.getBoundingClientRect();
                             const foodRect = nearestFood.getBoundingClientRect();
                             if (isColliding(fishRect, foodRect)) {
                                 nearestFood.remove();
-                                // Make fish grow slightly when eating
+                         
                                 const currentSize = parseInt(fish.style.width) || 50;
                                 fish.style.width = `${currentSize + 2}px`;
                                 
-                                // Update food counter
+                      
                                 foodCount--;
                                 document.getElementById("foodCount").textContent = foodCount;
                                 
-                                // Create small ripple effect when eating
+                          
                                 createRipple(foodX, foodY);
                             }
                         }, 2000);
                         
-                        // Flip fish direction based on movement
+            
                         const fishX = parseInt(fish.style.left);
                         fish.querySelector("img").style.transform = foodX > fishX ? "scaleX(1)" : "scaleX(-1)";
                         return;
                     }
                 }
                 
-                // Random movement if no food
+          
                 const newX = Math.random() * window.innerWidth;
                 const newY = Math.random() * window.innerHeight;
                 fish.style.transform = `translate(${newX - parseInt(fish.style.left)}px, ${newY - parseInt(fish.style.top)}px)`;
                 
-                // Flip fish direction based on movement
+      
                 const fishX = parseInt(fish.style.left);
                 fish.querySelector("img").style.transform = newX > fishX ? "scaleX(1)" : "scaleX(-1)";
-            }, 3000 + Math.random() * 2000); // Random interval for more natural movement
+            }, 3000 + Math.random() * 2000);
             
-            // Store the interval ID on the fish element so we can clear it if needed
+ 
             fish.moveInterval = moveInterval;
         }
         
@@ -340,11 +338,11 @@ const fishImages = [
             food.style.top = `${y - 5}px`;
             pond.appendChild(food);
             
-            // Update food counter
+          
             foodCount++;
             document.getElementById("foodCount").textContent = foodCount;
             
-            // Remove food after a while if not eaten
+       
             setTimeout(() => {
                 if (food.parentNode === pond) {
                     food.remove();
@@ -361,11 +359,11 @@ const fishImages = [
             lily.style.top = `${y - 40}px`;
             pond.appendChild(lily);
             
-            // Update lily counter
+        
             lilyCount++;
             document.getElementById("lilyCount").textContent = lilyCount;
             
-            // Make lily pads clickable - they'll create a fish when clicked
+          
             lily.addEventListener("click", (e) => {
                 e.stopPropagation();
                 createRipple(x, y);
@@ -373,19 +371,19 @@ const fishImages = [
             });
         }
         
-        // Handle pond clicks
+
         pond.addEventListener("click", (e) => {
             createRipple(e.clientX, e.clientY);
             addFood(e.clientX, e.clientY);
         });
         
-        // Button event listeners
+ 
         document.getElementById("addFish").addEventListener("click", () => {
             createFish();
         });
         
         document.getElementById("addFood").addEventListener("click", () => {
-            // Add food at random positions
+       
             for (let i = 0; i < 5; i++) {
                 const x = Math.random() * window.innerWidth;
                 const y = Math.random() * window.innerHeight;
@@ -420,11 +418,11 @@ const fishImages = [
             }
         });
         
-        // Add some initial pond elements
+   
         createFish();
         createFish();
         
-        // Add a lily pad
+      
         const initialLilyX = Math.random() * (window.innerWidth - 100) + 50;
         const initialLilyY = Math.random() * (window.innerHeight - 100) + 50;
         addLilyPad(initialLilyX, initialLilyY);
